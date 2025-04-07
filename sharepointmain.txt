@@ -1,0 +1,16 @@
+public static void main(String[] args) throws Exception {
+    String tenantId = "your-tenant-id";
+    String clientId = "your-client-id";
+    String clientSecret = "your-client-secret";
+
+    // These need to be retrieved via Graph API, or hardcoded if known
+    String siteId = "your-site-id";
+    String driveId = "your-drive-id"; // usually 'Documents' library
+    String itemId = "your-item-id";   // file identifier
+    String outputPath = "downloaded_file.docx";
+
+    String token = getAccessToken(tenantId, clientId, clientSecret);
+    downloadFile(token, siteId, driveId, itemId, outputPath);
+
+    System.out.println("File downloaded to: " + outputPath);
+}

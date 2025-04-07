@@ -1,0 +1,19 @@
+public static String getAccessToken(String tenantId, String clientId, String clientSecret) throws Exception {
+    String tokenUrl = "https://login.microsoftonline.com/" + tenantId + "/oauth2/v2.0/token";
+
+    HttpClient client = HttpClientBuilder.create().build();
+    HttpPost post = new HttpPost(tokenUrl);
+
+    List<NameValuePair> params = new ArrayList<>();
+    params.add(new BasicNameValuePair("grant_type", "client_credentials"));
+    params.add(new BasicNameValuePair("client_id", clientId));
+    params.add(new BasicNameValuePair("client_secret", clientSecret));
+    params.add(new BasicNameValuePair("scope", "https://graph.microsoft.com/.default")); // For Microsoft Graph
+
+    post.setEntity(new UrlEncodedFormEntity(params));
+    HttpResponse response = client.execute(post);
+
+    String json = EntityUtils.toString(response.getEntity());
+    JSONObject jsonObj = new JSONObject(json);
+    return jsonObj.getString("access_token");
+}

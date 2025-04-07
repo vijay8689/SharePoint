@@ -1,0 +1,20 @@
+public static void downloadFile(String accessToken, String siteId, String driveId, String itemId, String outputPath) throws Exception {
+    // Download URL for Microsoft Graph
+    String downloadUrl = "https://graph.microsoft.com/v1.0/sites/" + siteId +
+                         "/drives/" + driveId + "/items/" + itemId + "/content";
+
+    HttpGet request = new HttpGet(downloadUrl);
+    request.setHeader("Authorization", "Bearer " + accessToken);
+
+    HttpClient client = HttpClientBuilder.create().build();
+    HttpResponse response = client.execute(request);
+
+    try (InputStream is = response.getEntity().getContent();
+         FileOutputStream fos = new FileOutputStream(outputPath)) {
+        byte[] buffer = new byte[4096];
+        int bytesRead;
+        while ((bytesRead = is.read(buffer)) != -1) {
+            fos.write(buffer, 0, bytesRead);
+        }
+    }
+}
