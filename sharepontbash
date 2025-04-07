@@ -1,0 +1,4 @@
+GET https://graph.microsoft.com/v1.0/sites/yourdomain.sharepoint.com:/sites/yoursite
+GET https://graph.microsoft.com/v1.0/sites/{siteId}/drives
+GET https://graph.microsoft.com/v1.0/sites/{siteId}/drives/{driveId}/root:/path/to/file.docx
+
