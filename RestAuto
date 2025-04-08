@@ -1,0 +1,59 @@
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Scanner;
+
+public class SharePointTokenFetcher {
+    public static void main(String[] args) {
+        String tenantId = "your-tenant-id";
+        String clientId = "your-client-id";
+        String clientSecret = "your-client-secret";
+        String sharePointDomain = "yourdomain"; // from yourdomain.sharepoint.com
+        
+        try {
+            String token = getSharePointAccessToken(tenantId, clientId, clientSecret, sharePointDomain);
+            System.out.println("Access Token: " + token);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static String getSharePointAccessToken(String tenantId, String clientId, 
+            String clientSecret, String sharePointDomain) throws Exception {
+        
+        String tokenUrl = "https://accounts.accesscontrol.windows.net/" + tenantId + "/tokens/OAuth/2";
+        
+        String resource = "00000003-0000-0ff1-ce00-000000000000/" + 
+                         sharePointDomain + ".sharepoint.com@" + tenantId;
+        
+        String requestBody = "grant_type=client_credentials" +
+                            "&client_id=" + clientId + "@" + tenantId +
+                            "&client_secret=" + clientSecret +
+                            "&resource=" + resource;
+
+        HttpURLConnection connection = (HttpURLConnection) new URL(tokenUrl).openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        connection.setDoOutput(true);
+
+        try (OutputStream os = connection.getOutputStream()) {
+            byte[] input = requestBody.getBytes(StandardCharsets.UTF_8);
+            os.write(input, 0, input.length);
+        }
+
+        int responseCode = connection.getResponseCode();
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            StringBuilder response = new StringBuilder();
+            try (Scanner scanner = new Scanner(connection.getInputStream())) {
+                while (scanner.hasNextLine()) {
+                    response.append(scanner.nextLine());
+                }
+            }
+            // Parse JSON response to get access_token
+            return response.toString().split("\"access_token\":\"")[1].split("\"")[0];
+        } else {
+            throw new RuntimeException("Failed to get token. Response code: " + responseCode);
+        }
+    }
+}
