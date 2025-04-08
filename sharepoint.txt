@@ -1,19 +1,37 @@
-public static String getAccessToken(String tenantId, String clientId, String clientSecret) throws Exception {
-    String tokenUrl = "https://login.microsoftonline.com/" + tenantId + "/oauth2/v2.0/token";
+import com.microsoft.graph.authentication.TokenCredentialAuthProvider;
+import com.microsoft.graph.models.DriveItem;
+import com.microsoft.graph.requests.GraphServiceClient;
+import com.azure.identity.ClientSecretCredential;
+import com.azure.identity.ClientSecretCredentialBuilder;
+import okhttp3.Request;
 
-    HttpClient client = HttpClientBuilder.create().build();
-    HttpPost post = new HttpPost(tokenUrl);
+import java.io.*;
+import java.nio.file.*;
 
-    List<NameValuePair> params = new ArrayList<>();
-    params.add(new BasicNameValuePair("grant_type", "client_credentials"));
-    params.add(new BasicNameValuePair("client_id", clientId));
-    params.add(new BasicNameValuePair("client_secret", clientSecret));
-    params.add(new BasicNameValuePair("scope", "https://graph.microsoft.com/.default")); // For Microsoft Graph
+public class SharePointExcelDownloader {
+    private static final String CLIENT_ID = "your-client-id";
+    private static final String TENANT_ID = "your-tenant-id";
+    private static final String CLIENT_SECRET = "your-client-secret";
+    private static final String SITE_ID = "your-site-id";  // Get from Graph Explorer
+    private static final String FILE_PATH = "/Shared Documents/test.xlsx"; // File path in SharePoint
 
-    post.setEntity(new UrlEncodedFormEntity(params));
-    HttpResponse response = client.execute(post);
+    public static void main(String[] args) throws IOException {
+        ClientSecretCredential credential = new ClientSecretCredentialBuilder()
+                .clientId(CLIENT_ID)
+                .clientSecret(CLIENT_SECRET)
+                .tenantId(TENANT_ID)
+                .build();
 
-    String json = EntityUtils.toString(response.getEntity());
-    JSONObject jsonObj = new JSONObject(json);
-    return jsonObj.getString("access_token");
+        GraphServiceClient<Request> graphClient = GraphServiceClient
+                .builder()
+                .authenticationProvider(new TokenCredentialAuthProvider(credential))
+                .buildClient();
+
+        DriveItem file = graphClient.sites(SITE_ID).drive().root().itemWithPath(FILE_PATH).buildRequest().get();
+
+        byte[] fileContent = graphClient.sites(SITE_ID).drive().items(file.id).content().buildRequest().get();
+        
+        Files.write(Paths.get("downloaded.xlsx"), fileContent);
+        System.out.println("File downloaded successfully!");
+    }
 }
