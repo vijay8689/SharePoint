@@ -1,20 +1,54 @@
-public static void downloadFile(String accessToken, String siteId, String driveId, String itemId, String outputPath) throws Exception {
-    // Download URL for Microsoft Graph
-    String downloadUrl = "https://graph.microsoft.com/v1.0/sites/" + siteId +
-                         "/drives/" + driveId + "/items/" + itemId + "/content";
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import org.apache.commons.io.IOUtils;
 
-    HttpGet request = new HttpGet(downloadUrl);
-    request.setHeader("Authorization", "Bearer " + accessToken);
-
-    HttpClient client = HttpClientBuilder.create().build();
-    HttpResponse response = client.execute(request);
-
-    try (InputStream is = response.getEntity().getContent();
-         FileOutputStream fos = new FileOutputStream(outputPath)) {
-        byte[] buffer = new byte[4096];
-        int bytesRead;
-        while ((bytesRead = is.read(buffer)) != -1) {
-            fos.write(buffer, 0, bytesRead);
+public class SharePointDownloader {
+    
+    private static final String SHAREPOINT_SITE = "https://yourcompany.sharepoint.com/sites/yoursite";
+    private static final String FILE_RELATIVE_URL = "/Shared Documents/YourFolder/YourFile.xlsx";
+    private static final String CLIENT_ID = "your-client-id";
+    private static final String CLIENT_SECRET = "your-client-secret";
+    
+    public static void downloadExcelFile(String savePath) throws Exception {
+        // Get access token
+        String accessToken = getAccessToken();
+        
+        // Construct file download URL
+        String fileUrl = SHAREPOINT_SITE + "/_api/web/GetFileByServerRelativeUrl('"
+                + FILE_RELATIVE_URL + "')/$value";
+        
+        // Create connection
+        HttpURLConnection conn = (HttpURLConnection) new URL(fileUrl).openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Authorization", "Bearer " + accessToken);
+        conn.setRequestProperty("Accept", "application/json;odata=verbose");
+        
+        // Get input stream and save to file
+        try (InputStream in = conn.getInputStream();
+             FileOutputStream out = new FileOutputStream(savePath)) {
+            IOUtils.copy(in, out);
+        }
+        
+        System.out.println("File downloaded successfully to: " + savePath);
+    }
+    
+    private static String getAccessToken() throws Exception {
+        // Implement OAuth2 token acquisition here
+        // This typically involves making a POST request to:
+        // https://accounts.accesscontrol.windows.net/{tenant-id}/tokens/OAuth/2
+        // with client_id, client_secret, and resource parameters
+        
+        // For simplicity, returning a placeholder
+        return "your-access-token";
+    }
+    
+    public static void main(String[] args) {
+        try {
+            downloadExcelFile("C:/temp/DownloadedFile.xlsx");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
