@@ -1,0 +1,14 @@
+<dependencies>
+    <!-- Microsoft Graph SDK -->
+    <dependency>
+        <groupId>com.microsoft.graph</groupId>
+        <artifactId>microsoft-graph</artifactId>
+        <version>5.54.0</version>
+    </dependency>
+    <!-- OAuth Authentication -->
+    <dependency>
+        <groupId>com.azure</groupId>
+        <artifactId>azure-identity</artifactId>
+        <version>1.6.0</version>
+    </dependency>
+</dependencies>
